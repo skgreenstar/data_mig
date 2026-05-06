@@ -1,0 +1,45 @@
+-- 1. 타겟 카탈로그와 스키마 지정 (main 카탈로그라고 가정)
+USE CATALOG main;
+USE SCHEMA strategic_ai;
+
+-- 2. 각 테이블 복원 (External Table 생성)
+
+-- ① crude_prices 테이블 복원
+CREATE TABLE crude_prices
+USING DELTA
+LOCATION '/Volumes/main/strategic_ai/migration_export/crude_prices';
+
+-- ② eia_inventory 테이블 복원
+CREATE TABLE eia_inventory
+USING DELTA
+LOCATION '/Volumes/main/strategic_ai/migration_export/eia_inventory';
+
+-- ③ macro 테이블 복원
+CREATE TABLE macro
+USING DELTA
+LOCATION '/Volumes/main/strategic_ai/migration_export/macro';
+
+-- ④ macro_indicators 테이블 복원
+CREATE TABLE macro_indicators
+USING DELTA
+LOCATION '/Volumes/main/strategic_ai/migration_export/macro_indicators';
+
+-- ⑤ market_snapshots 테이블 복원
+CREATE TABLE market_snapshots
+USING DELTA
+LOCATION '/Volumes/main/strategic_ai/migration_export/market_snapshots';
+
+-- ⑥ news 테이블 복원
+CREATE TABLE news
+USING DELTA
+LOCATION '/Volumes/main/strategic_ai/migration_export/news';
+
+-- ⑦ prices 테이블 복원
+CREATE TABLE prices
+USING DELTA
+LOCATION '/Volumes/main/strategic_ai/migration_export/prices';
+
+-- ⑧ tanker_data 테이블 복원
+CREATE TABLE tanker_data
+USING DELTA
+LOCATION '/Volumes/main/strategic_ai/migration_export/tanker_data';
