@@ -32,14 +32,18 @@ CREATE TABLE IF NOT EXISTS main.strategic_syk.macro (
 ) USING DELTA;
 
 
--- 1. 가격 데이터 적재
-INSERT INTO main.strategic_syk.prices
-SELECT * FROM json.`/Volumes/main/strategic_syk/migration_files/prices.jsonl`;
+-- 1. 가격 데이터 (price_usd_bbl 매핑 및 현재시각 추가)
+INSERT INTO main.strategic_syk.prices (date, grade, price_usd_bbl, source, collected_at)
+SELECT date, grade, price_usd_bbl, source, current_timestamp() 
+FROM json.`/Volumes/main/strategic_syk/migration_files/prices.jsonl`;
 
--- 2. 뉴스 데이터 적재
-INSERT INTO main.strategic_syk.news
-SELECT * FROM json.`/Volumes/main/strategic_syk/migration_files/news.jsonl`;
+-- 2. 뉴스 데이터
+INSERT INTO main.strategic_syk.news (id, published_at, title, source, category, sentiment, impact_score, url, summary, title_ko, collected_at)
+SELECT id, published_at, title, source, category, sentiment, impact_score, url, summary, title_ko, current_timestamp()
+FROM json.`/Volumes/main/strategic_syk/migration_files/news.jsonl`;
 
--- 3. 거시 지표 적재
-INSERT INTO main.strategic_syk.macro
-SELECT * FROM json.`/Volumes/main/strategic_syk/migration_files/macro.jsonl`;
+-- 3. 거시 지표 데이터
+INSERT INTO main.strategic_syk.macro (date, metric, value, source, collected_at)
+SELECT date, metric, value, source, current_timestamp()
+FROM json.`/Volumes/main/strategic_syk/migration_files/macro.jsonl`;
+
