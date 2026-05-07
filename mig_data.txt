@@ -1,0 +1,18 @@
+-- 1. 가격 데이터 로드
+COPY INTO main.strategic_syk.prices
+FROM '/Volumes/main/strategic_syk/migration_files/prices.jsonl'
+FILEFORMAT = JSON
+COPY_OPTIONS ('mergeSchema' = 'true');
+
+-- 2. 뉴스 데이터 로드
+COPY INTO main.strategic_syk.prices
+FROM '/Volumes/main/strategic_syk/migration_files/news.jsonl'
+FILEFORMAT = JSON
+COPY_OPTIONS ('mergeSchema' = 'true');
+
+-- 3. 거시 지표 로드
+COPY INTO main.strategic_syk.prices
+FROM '/Volumes/main/strategic_syk/migration_files/macro.jsonl'
+FILEFORMAT = JSON
+COPY_OPTIONS ('mergeSchema' = 'true');
+
