@@ -1,18 +1,45 @@
--- 1. 가격 데이터 로드
-COPY INTO main.strategic_syk.prices
-FROM '/Volumes/main/strategic_syk/migration_files/prices.jsonl'
-FILEFORMAT = JSON
-COPY_OPTIONS ('mergeSchema' = 'true');
+-- 1. 가격 테이블 생성
+CREATE TABLE IF NOT EXISTS main.strategic_syk.prices (
+    date        DATE,
+    grade       STRING,
+    price_usd_bbl DOUBLE,
+    source      STRING,
+    collected_at TIMESTAMP
+) USING DELTA;
 
--- 2. 뉴스 데이터 로드
-COPY INTO main.strategic_syk.prices
-FROM '/Volumes/main/strategic_syk/migration_files/news.jsonl'
-FILEFORMAT = JSON
-COPY_OPTIONS ('mergeSchema' = 'true');
+-- 2. 뉴스 테이블 생성
+CREATE TABLE IF NOT EXISTS main.strategic_syk.news (
+    id           STRING,
+    published_at TIMESTAMP,
+    title        STRING,
+    source       STRING,
+    category     STRING,
+    sentiment    DOUBLE,
+    impact_score DOUBLE,
+    url          STRING,
+    summary      STRING,
+    collected_at TIMESTAMP,
+    title_ko     STRING
+) USING DELTA;
 
--- 3. 거시 지표 로드
-COPY INTO main.strategic_syk.prices
-FROM '/Volumes/main/strategic_syk/migration_files/macro.jsonl'
-FILEFORMAT = JSON
-COPY_OPTIONS ('mergeSchema' = 'true');
+-- 3. 거시 지표 테이블 생성
+CREATE TABLE IF NOT EXISTS main.strategic_syk.macro (
+    date        DATE,
+    metric      STRING,
+    value       DOUBLE,
+    source      STRING,
+    collected_at TIMESTAMP
+) USING DELTA;
 
+
+-- 1. 가격 데이터 적재
+INSERT INTO main.strategic_syk.prices
+SELECT * FROM json.`/Volumes/main/strategic_syk/migration_files/prices.jsonl`;
+
+-- 2. 뉴스 데이터 적재
+INSERT INTO main.strategic_syk.news
+SELECT * FROM json.`/Volumes/main/strategic_syk/migration_files/news.jsonl`;
+
+-- 3. 거시 지표 적재
+INSERT INTO main.strategic_syk.macro
+SELECT * FROM json.`/Volumes/main/strategic_syk/migration_files/macro.jsonl`;
