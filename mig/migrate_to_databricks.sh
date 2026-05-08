@@ -3,9 +3,9 @@
 # --- 설정 (실행 시점에 환경 변수로 입력받음) ---
 # 예: DATABRICKS_WAREHOUSE_ID=xxx ./migrate_to_databricks.sh
 CATALOG=${DATABRICKS_CATALOG:-"main"}
-SCHEMA=${DATABRICKS_SCHEMA:-"strategic_syk"}
+SCHEMA=${DATABRICKS_SCHEMA:-"strategic_ai"}
 WAREHOUSE_ID=${DATABRICKS_WAREHOUSE_ID}
-TARGET_PATH="dbfs:/tmp/strategic_ai_mig"
+TARGET_PATH="dbfs:/tmp/strategic_ai"
 INPUT_DIR="migration_data"
 
 # 필수값 체크
@@ -31,7 +31,7 @@ databricks fs cp --recursive "$INPUT_DIR/" "$TARGET_PATH"
 
 echo -e "\n2. 데이터브릭스 Delta 테이블로 마이그레이션 실행 ($CATALOG.$SCHEMA)..."
 
-for table in prices news macro; do
+for table in prices news macro gpr scenarios; do
   echo " - $table 데이터 로딩 중..."
   databricks sql execute --warehouse-id "$WAREHOUSE_ID" --statement "
     COPY INTO $CATALOG.$SCHEMA.$table

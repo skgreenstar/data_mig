@@ -36,4 +36,16 @@ if [ -f "$DATA_DIR/macro.json" ]; then
   echo " - macro.jsonl 생성 완료"
 fi
 
+# [GPR] 그대로 변환
+if [ -f "$DATA_DIR/gpr.json" ]; then
+  cat "$DATA_DIR/gpr.json" | jq -c '.[]' > "$OUTPUT_DIR/gpr.jsonl"
+  echo " - gpr.jsonl 생성 완료"
+fi
+
+# [Scenarios] 그대로 변환
+if [ -f "$DATA_DIR/scenarios.json" ]; then
+  cat "$DATA_DIR/scenarios.json" | jq -c '.[]' > "$OUTPUT_DIR/scenarios.jsonl"
+  echo " - scenarios.jsonl 생성 완료"
+fi
+
 echo -e "\n완료! 이제 migration_data 폴더를 업로드하고 마이그레이션 스크립트를 실행하세요."
