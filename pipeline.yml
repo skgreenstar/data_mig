@@ -1,0 +1,135 @@
+trigger:
+  branches:
+    include:
+      - main
+
+# ==============================
+# Variables Group 연결
+# ==============================
+variables:
+- group: "<수정> Variables Group 이름"   # Library에 등록된 Variables Group 이름으로 수정
+- name: buildTag
+  value: $(Build.BuildId)
+
+# ==============================
+# Stage 1: CI - Docker Build
+# ==============================
+- stage: Build
+  displayName: "CI - Docker Build"
+  jobs:
+  - job: DockerBuild
+    displayName: "Build Docker Image using Build ACR"
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    # ----------------------
+    # 1️⃣ Build ACR 로그인
+    # ----------------------
+    - task: AzureCLI@2
+      displayName: "Login to Build ACR"
+      inputs:
+        azureSubscription: '<수정> Service Connection 이름'  # Azure DevOps Service Connection
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Logging in to Build ACR for Base Image pull..."
+          az acr login --name <수정> buildAcr  # CI 단계에서 사용할 Build ACR 이름
+
+    # ----------------------
+    # 2️⃣ Docker Build
+    # ----------------------
+    - task: Docker@2
+      displayName: "Build Docker Image"
+      inputs:
+        command: 'build'
+        Dockerfile: '<수정> Dockerfile 경로' # 예: Dockerfile
+        repository: '<수정> Docker 이미지 이름' # 예: myapp
+        tags: |
+          $(buildTag)
+        containerRegistry: '<수정> Service Connection 이름' # Build ACR용
+
+# ==============================
+# Stage 2: CD - Push to Deploy ACR & AKS Deployment
+# ==============================
+- stage: Deploy
+  displayName: "CD - Push to Deploy ACR & AKS Deployment"
+  dependsOn: Build
+  jobs:
+  - job: PushAndDeploy
+    displayName: "Push Docker Image to Deploy ACR & Deploy to AKS"
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    # ----------------------
+    # 1️⃣ Deploy ACR 로그인
+    # ----------------------
+    - task: AzureCLI@2
+      displayName: "Login to Deploy ACR"
+      inputs:
+        azureSubscription: '<수정> Service Connection 이름'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Logging in to Deploy ACR..."
+          az acr login --name <수정> deployAcr  # CD 단계에서 사용할 Deploy ACR 이름
+
+    # ----------------------
+    # 2️⃣ Pull 테스트
+    # ----------------------
+    - task: AzureCLI@2
+      displayName: "Test Pull from Deploy ACR"
+      inputs:
+        azureSubscription: '<수정> Service Connection 이름'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Testing Pull from Deploy ACR..."
+          docker pull <수정> deployAcr/<수정> imageName:$(buildTag)
+          if [ $? -ne 0 ]; then
+            echo "ERROR: Cannot pull image from Deploy ACR!"
+            exit 1
+          fi
+
+    # ----------------------
+    # 3️⃣ Docker Tag & Push
+    # ----------------------
+    - task: AzureCLI@2
+      displayName: "Tag & Push to Deploy ACR"
+      inputs:
+        azureSubscription: '<수정> Service Connection 이름'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Tagging Docker image for Deploy ACR..."
+          docker tag <수정> buildAcr/<수정> imageName:$(buildTag) <수정> deployAcr/<수정> imageName:$(buildTag)
+          echo "Pushing Docker image to Deploy ACR..."
+          docker push <수정> deployAcr/<수정> imageName:$(buildTag)
+
+    # ----------------------
+    # 4️⃣ AKS Credential & Secret 등록
+    # ----------------------
+    - task: AzureCLI@2
+      displayName: "Deploy to AKS"
+      inputs:
+        azureSubscription: '<수정> Service Connection 이름'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Getting AKS credentials..."
+          az aks get-credentials --resource-group <수정> aksResourceGroup --name <수정> aksClusterName --overwrite-existing
+
+          echo "Creating imagePullSecret if not exists..."
+          kubectl create secret docker-registry acr-secret \
+            --docker-server=<수정> deployAcr \
+            --docker-username=$(<수정> acrSpId) \
+            --docker-password=$(<수정> acrSpPassword) \
+            --docker-email=$(<수정> acrEmail) \
+            --namespace $(<수정> aksNamespace) || echo "Secret already exists"
+
+          echo "Updating AKS Deployment..."
+          kubectl set image deployment/<수정> $(<수정> imageName)-deployment \
+            <수정> $(<수정> deployAcr)/$(<수정> imageName):$(buildTag) \
+            -n $(<수정> aksNamespace)
+
+          echo "Checking rollout status..."
+          kubectl rollout status deployment/<수정> $(<수정> imageName)-deployment -n $(<수정> aksNamespace)
