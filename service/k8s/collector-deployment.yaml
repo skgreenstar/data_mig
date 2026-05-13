@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collector
+  namespace: strategicai
+  labels:
+    app: collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collector
+  template:
+    metadata:
+      labels:
+        app: collector
+    spec:
+      containers:
+      - name: collector
+        image: ghcr.io/greenstar/strategic-ai-collector:latest
+        ports:
+        - containerPort: 9000
+        envFrom:
+        - configMapRef:
+            name: strategicai-config
+        - secretRef:
+            name: strategicai-secret
+        volumeMounts:
+        - name: data
+          mountPath: /app/data_local
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9000
+          initialDelaySeconds: 20
+          periodSeconds: 15
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: collector-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: collector
+  namespace: strategicai
+spec:
+  selector:
+    app: collector
+  ports:
+  - protocol: TCP
+    port: 9000
+    targetPort: 9000

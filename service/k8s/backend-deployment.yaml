@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: strategicai
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: ghcr.io/greenstar/strategic-ai-backend:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: strategicai-config
+        - secretRef:
+            name: strategicai-secret
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+      volumes:
+      - name: logs
+        persistentVolumeClaim:
+          claimName: backend-logs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: strategicai
+spec:
+  selector:
+    app: backend
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
