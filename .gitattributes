@@ -1,2 +1,5 @@
 *.vsix filter=lfs diff=lfs merge=lfs -text
+<<<<<<< HEAD
+=======
 Antigravity.exe filter=lfs diff=lfs merge=lfs -text
+>>>>>>> 5a7826d (update)
