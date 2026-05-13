@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: strategicai-dev-config
+  namespace: strategicai
+data:
+  # 개발 환경용 설정 (필요시 운영과 다르게 수정 가능)
+  AZURE_OPENAI_ENDPOINT: "https://aifrontier.openai.azure.com"
+  AZURE_OPENAI_API_VER: "2025-04-01-preview"
+  LLM_MODEL: "gpt-5.4-mini"
+  AZURE_OPENAI_DEPLOYMENT: "gpt-5.4-mini"
+  LLM_PRO_MODEL: "gpt-5.4-mini"
+  DATABRICKS_HOST: "https://dbc-aaee5972-1902.cloud.databricks.com"
+  DATABRICKS_WAREHOUSE_ID: "a84049681d450488"
+  DATABRICKS_CATALOG: "main"
+  DATABRICKS_SCHEMA: "strategic_hm_dev" # 개발용 스키마 구분
+  PYTHONPATH: "/app"
+  VITE_API_BASE: "/api"
+  VITE_API_PROXY: "http://backend-dev:8000"
